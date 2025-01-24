@@ -49,7 +49,7 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-
+    
 <h2>Edit User</h2>
 <a href="../index.php" class="btn btn-home">Back to Home</a>
 <form action="" method="post">

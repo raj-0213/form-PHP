@@ -145,7 +145,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Ensure all required fields are filled
     if ($name && $email && $password && $phone_number && $dob && $color_code && $gender && $country) {
-        // Insert data into database
         $result = $user->createUser([
             'name' => $name,
             'email' => $email,
