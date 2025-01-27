@@ -103,7 +103,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $url = test_input($_POST['url']);
     }
 
-    
 
     // File Upload Handling
     if (!empty($_FILES['profile_picture']['name'])) {
@@ -142,9 +141,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $terms = isset($_POST['terms']) ? 'true' : 'false';
 
+    // $editorContent = $_POST['editorContent']; 
+    $editorContent = isset($_POST['editorContent']) ? test_editor_input($_POST['editorContent']) : '';
 
+   
     // Ensure all required fields are filled
     if ($name && $email && $password && $phone_number && $dob && $color_code && $gender && $country) {
+
+        // echo "Editor Content: " . htmlspecialchars($editorContent);
+
         $result = $user->createUser([
             'name' => $name,
             'email' => $email,
@@ -161,6 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'quantity' => $quantity,
             'time' => $time,
             'url' => $url,
+            'editorContent'=>$editorContent,
             'terms' => $terms,
         ]);
 
@@ -176,6 +182,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // }
 }
 
+function test_editor_input($data) {
+    // Allow only basic formatting tags and strip others
+    $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote>';
+    $data = strip_tags($data, $allowed_tags);
+    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    return $data;
+}
 
 function test_input($data) {
     $data = trim($data);
@@ -186,13 +199,44 @@ function test_input($data) {
 
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <link rel="stylesheet" href="../css/style.css">
+    
     <style>
         .error {
             color: red;
         }
-     </style>   
+       
+        .toolbar {
+    background: #f1f1f1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    display: inline-block;
+}
+
+.toolbar button {
+    padding: 5px;
+    margin: 2px;
+    cursor: pointer;
+}
+
+.text-editor {
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 5px;
+    outline: none;
+    overflow-y: auto;
+}
+
+     </style> 
+
+   
+
+
 </head>
 
 <h2> User Registration form</h2>
@@ -205,6 +249,22 @@ function test_input($data) {
 
     Email: <input type="email" name="email"> 
     <span class="error"><?php echo "* ", $emailErr; ?></span><br>
+
+    <labelf for="editor">Your Bio</label><br>
+    <div id="editor-container" class="text-editor" contenteditable="true"></div>
+    <input type="hidden" name="editorContent" id="editorContent">
+
+    <div class="toolbar">
+    <button type="button" onclick="formatText('bold')"><b>B</b></button>
+    <button type="button" onclick="formatText('italic')"><i>I</i></button>
+    <button type="button" onclick="formatText('underline')"><u>U</u></button>
+    <button type="button" onclick="formatText('justifyLeft')">Left</button>
+    <button type="button" onclick="formatText('justifyCenter')">Center</button>
+    <button type="button" onclick="formatText('justifyRight')">Right</button>
+    <button type="button" onclick="formatText('insertUnorderedList')">• List</button>
+    <button type="button" onclick="formatText('insertOrderedList')">1. List</button>
+    </div>
+
 
     Password: <input type="password" name="password"> 
     <span class="error"><?php echo "* ",$passwordErr; ?></span><br>
@@ -260,3 +320,15 @@ function test_input($data) {
 
     <input type="submit" value="Submit">
 </form>
+
+</html>
+
+
+<script>
+        function formatText(command) {
+            document.execCommand(command, false, null);
+        }
+            document.querySelector("form").addEventListener("submit", function() {
+            document.getElementById("editorContent").value = document.getElementById("editor-container").innerHTML;
+        });
+</script>

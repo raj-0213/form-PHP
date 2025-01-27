@@ -4,6 +4,7 @@ $user = new User();
 
 if (isset($_GET['id'])) {
     $userData = $user->getUserById($_GET['id']);
+    // var_dump($userData);
     if (!$userData) {
         die("User not found!");
     }
@@ -22,6 +23,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'country' => $_POST['country'],
         'hobbies' => isset($_POST['hobbies']) ? implode(',', $_POST['hobbies']) : '',
 
+        // $editorContent = $_POST['editorContent']; 
+        'editorContent' => isset($_POST['editorContent']) ? test_editor_input($_POST['editorContent']) : ' ',
+
         'bdaymonth' => $_POST['bdaymonth'],
         'week' => $_POST['week'],
         'quantity' => $_POST['quantity'],
@@ -33,6 +37,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $user->updateUser($updateData);
     header("Location: ../index.php");
+}
+
+function test_editor_input($data) {
+    // Allow only basic formatting tags and strip others
+    $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote>';
+    $data = strip_tags($data, $allowed_tags);
+    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    return $data;
 }
 
 // Convert stored hobbies string to an array
@@ -47,6 +59,35 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit User</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .error {
+            color: red;
+        }
+       
+        .toolbar {
+    background: #f1f1f1;
+    padding: 5px;
+    border: 1px solid #ccc;
+    display: inline-block;
+}
+
+.toolbar button {
+    padding: 5px;
+    margin: 2px;
+    cursor: pointer;
+}
+
+.text-editor {
+    width: 100%;
+    min-height: 150px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 5px;
+    outline: none;
+    overflow-y: auto;
+}
+
+     </style> 
 </head>
 <body>
     
@@ -58,6 +99,24 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
     Email: <input type="email" name="email" value="<?= htmlspecialchars($userData['email']) ?>" required> <br>
     Phone Number: <input type="text" name="phone_number" value="<?= htmlspecialchars($userData['phone_number']) ?>" required> <br>
     Date of Birth: <input type="date" name="dob" value="<?= htmlspecialchars($userData['dob']) ?>" required> <br>
+
+    <label for="editor">Your Bio</label><br>
+    <div id="editor-container" class="text-editor" contenteditable="true">
+        <?= htmlspecialchars_decode($userData['editorcontent']) ?>
+    </div>
+    <input type="hidden" name="editorContent" id="editorContent">
+
+    <div class="toolbar">
+        <button type="button" onclick="formatText('bold')"><b>B</b></button>
+        <button type="button" onclick="formatText('italic')"><i>I</i></button>
+        <button type="button" onclick="formatText('underline')"><u>U</u></button>
+        <button type="button" onclick="formatText('justifyLeft')">Left</button>
+        <button type="button" onclick="formatText('justifyCenter')">Center</button>
+        <button type="button" onclick="formatText('justifyRight')">Right</button>
+        <button type="button" onclick="formatText('insertUnorderedList')">• List</button>
+        <button type="button" onclick="formatText('insertOrderedList')">1. List</button>
+    </div>
+
     Favorite Color: <input type="color" name="color_code" value="<?= htmlspecialchars($userData['color_code']) ?>" required> <br>
     Gender: 
     <input type="radio" name="gender" value="Male" <?= ($userData['gender'] == 'Male') ? 'checked' : '' ?>> Male
@@ -88,5 +147,15 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
     <input type="submit" value="Update">
 </form>
 
+
+<script>
+        function formatText(command) {
+            document.getElementById("editor-container").focus();
+            document.execCommand(command, false, null);
+        }
+            document.querySelector("form").addEventListener("submit", function() {
+            document.getElementById("editorContent").value = document.getElementById("editor-container").innerHTML;
+        });
+</script>
 </body>
 </html>

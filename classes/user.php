@@ -13,11 +13,11 @@ class User {
     try {
         $query = "INSERT INTO userdetails (
                     name, email, password, phone_number, dob, color_code, profile_picture, 
-                    gender, country, hobbies, bdaymonth, week, quantity, time, url, terms
+                    gender, country, hobbies, bdaymonth, week, quantity, time, url, editorContent, terms
                   ) 
                   VALUES (
                     :name, :email, :password, :phone_number, :dob, :color_code, :profile_picture, 
-                    :gender, :country, :hobbies, :bdaymonth, :week, :quantity, :time, :url, :terms
+                    :gender, :country, :hobbies, :bdaymonth, :week, :quantity, :time, :url, :editorContent,:terms
                   )";
         
         $stmt = $this->db->prepare($query);
@@ -61,6 +61,7 @@ class User {
                     quantity=:quantity, 
                     time=:time, 
                     url=:url, 
+                    editorContent=:editorContent,
                     terms=:terms 
                   WHERE id=:id";
         

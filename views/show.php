@@ -17,6 +17,7 @@ if (isset($_GET['id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
+    
 </head>
 <body>
 
@@ -39,6 +40,8 @@ if (isset($_GET['id'])) {
         <th>Quantity</th>
         <th>Time</th>
         <th>URL</th>
+        <th>Editor Content</th>
+
     </tr>
 
     <?php if (isset($userData) && is_array($userData)): ?>
@@ -60,6 +63,11 @@ if (isset($_GET['id'])) {
         <td><?= htmlspecialchars($userData['quantity']) ?></td>
         <td><?= htmlspecialchars($userData['time']) ?></td>
         <td><a href="<?= htmlspecialchars($userData['url']) ?>" target="_blank"><?= htmlspecialchars($userData['url']) ?></a></td>
+        <td>
+            <div class="editor-content" style="border: 1px solid #ddd; padding: 10px;">
+                <?= htmlspecialchars_decode($userData['editorcontent']) ?> 
+            </div>
+        </td> 
         
     </tr>
     <?php else: ?>
