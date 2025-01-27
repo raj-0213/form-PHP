@@ -148,8 +148,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Ensure all required fields are filled
     if ($name && $email && $password && $phone_number && $dob && $color_code && $gender && $country) {
 
-        // echo "Editor Content: " . htmlspecialchars($editorContent);
-
         $result = $user->createUser([
             'name' => $name,
             'email' => $email,
@@ -170,22 +168,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'terms' => $terms,
         ]);
 
-        if ($result) {
-            header("Location: ../index.php");
-            exit;
-        } else {
-            echo "Failed to insert data into the database.";
+
+if ($result) {
+    $userId = $result; // Capture inserted user ID
+
+    // Handle multiple image uploads
+    if (!empty($_FILES['other_images']['name'][0])) {
+        $upload_dir = 'uploads/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+
+        foreach ($_FILES['other_images']['name'] as $key => $name) {
+            $file_tmp = $_FILES['other_images']['tmp_name'][$key];
+            $file_name = basename($name);
+            $file_path = $upload_dir . $file_name;
+
+            if (move_uploaded_file($file_tmp, $file_path)) {
+                $user->addImage($userId, $file_path); // Pass userId to addImage function
+            } else {
+                die("Error uploading file: $name");
+            }
         }
     }
+
+    header("Location: ../index.php");
+    exit;
+} else {
+    echo "Failed to insert data into the database.";
+}
+
+       }
     // } else {
     //     echo "Please fill in all required fields.";
     // }
 }
 
+
 function test_editor_input($data) {
-    // Allow only basic formatting tags and strip others
-    $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote>';
+    // Allow basic formatting tags and alignment styles
+    $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote><div><span>';
+    // Allow style attribute for alignment
     $data = strip_tags($data, $allowed_tags);
+    $data = preg_replace('/class="[^"]*"/', '', $data); // Remove existing classes
     $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     return $data;
 }
@@ -210,27 +235,27 @@ function test_input($data) {
         }
        
         .toolbar {
-    background: #f1f1f1;
-    padding: 5px;
-    border: 1px solid #ccc;
-    display: inline-block;
-}
+        background: #f1f1f1;
+        padding: 5px;
+        border: 1px solid #ccc;
+        display: inline-block;
+        }
 
-.toolbar button {
-    padding: 5px;
-    margin: 2px;
-    cursor: pointer;
-}
+        .toolbar button {
+        padding: 5px;
+        margin: 2px;
+        cursor: pointer;
+        }
 
-.text-editor {
-    width: 100%;
-    min-height: 150px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-top: 5px;
-    outline: none;
-    overflow-y: auto;
-}
+        .text-editor {
+        width: 100%;
+        min-height: 150px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 5px;
+        outline: none;
+        overflow-y: auto;
+        }
 
      </style> 
 
@@ -291,6 +316,8 @@ function test_input($data) {
     <input type="checkbox" name="hobbies[]" value="Sports"> Sports <br>
 
     Profile Picture: <input type="file" name="profile_picture" > <br>
+
+    Other Images : <input type="file" name="other_images[]" multiple > <br>
 
     Country: <select name="country">
         <option value="">Select Country</option>

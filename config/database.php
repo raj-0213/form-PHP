@@ -18,24 +18,12 @@ class Database {
 }
 ?>
 
-
-<!-- 
-CREATE TABLE userdetails (
+<!-- CREATE TABLE user_images (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(10) NOT NULL,
-    dob DATE NOT NULL,
-    color_code VARCHAR(10) ,
-    profile_picture TEXT NOT NULL,
-    gender VARCHAR(10) ,
-    country VARCHAR(50) ,
-    hobbies TEXT, 
-    bdaymonth VARCHAR(10) ,
-    week VARCHAR(10) ,
-    quantity INT ,
-    time TIME ,
-    url TEXT,
-    terms BOOLEAN 
+    user_id INT REFERENCES userdetails(id),
+    image_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ); -->
+
+

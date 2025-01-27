@@ -40,9 +40,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 function test_editor_input($data) {
-    // Allow only basic formatting tags and strip others
-    $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote>';
+    // Allow basic formatting tags and alignment styles
+    $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote><div><span>';
+    // Allow style attribute for alignment
     $data = strip_tags($data, $allowed_tags);
+    $data = preg_replace('/class="[^"]*"/', '', $data); // Remove existing classes
     $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     return $data;
 }
@@ -113,8 +115,8 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
         <button type="button" onclick="formatText('justifyLeft')">Left</button>
         <button type="button" onclick="formatText('justifyCenter')">Center</button>
         <button type="button" onclick="formatText('justifyRight')">Right</button>
-        <button type="button" onclick="formatText('insertUnorderedList')">• List</button>
-        <button type="button" onclick="formatText('insertOrderedList')">1. List</button>
+        <button type="button" onclick="formatText('insertUnorderedList')">UL</button>
+        <button type="button" onclick="formatText('insertOrderedList')">OL</button>
     </div>
 
     Favorite Color: <input type="color" name="color_code" value="<?= htmlspecialchars($userData['color_code']) ?>" required> <br>

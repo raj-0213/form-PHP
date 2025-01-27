@@ -41,7 +41,7 @@ if (isset($_GET['id'])) {
         <th>Time</th>
         <th>URL</th>
         <th>Editor Content</th>
-
+        <th>Status</th>
     </tr>
 
     <?php if (isset($userData) && is_array($userData)): ?>
@@ -67,7 +67,11 @@ if (isset($_GET['id'])) {
             <div class="editor-content" style="border: 1px solid #ddd; padding: 10px;">
                 <?= htmlspecialchars_decode($userData['editorcontent']) ?> 
             </div>
-        </td> 
+        </td>
+
+        <td style="background-color: <?= $userData['isactive'] ? 'green' : 'red' ?>; color: white;">
+            <?= $userData['isactive'] ? 'Active' : 'InActive' ?>
+        </td>
         
     </tr>
     <?php else: ?>

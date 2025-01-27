@@ -22,7 +22,7 @@ class User {
         
         $stmt = $this->db->prepare($query);
         if ($stmt->execute($data)) {
-            return true;
+            return $this->db->lastInsertId();
         } else {
             echo "Failed to insert into database!";
             print_r($stmt->errorInfo()); 
@@ -62,7 +62,8 @@ class User {
                     time=:time, 
                     url=:url, 
                     editorContent=:editorContent,
-                    terms=:terms 
+                    terms=:terms ,
+                    updatedAt=NOW() 
                   WHERE id=:id";
         
         $stmt = $this->db->prepare($query);
@@ -71,8 +72,46 @@ class User {
     
 
     public function deleteUser($id) {
-        $stmt = $this->db->prepare("DELETE FROM userdetails WHERE id = ?");
+        $query = "UPDATE userdetails SET 
+                    isActive = false, 
+                    deletedAt = NOW() 
+                  WHERE id = ?";
+        
+        $stmt = $this->db->prepare($query);
         return $stmt->execute([$id]);
+    }
+
+    public function updateStatus($id, $isactive) {
+        $deletedAt = $isactive ? NULL : "NOW()";
+        $sql = "UPDATE userdetails SET isactive = ?, deletedAt = ? WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$isactive, $deletedAt, $id]);
+    }
+
+    public function addImage($userId, $imagePath) {
+        try {
+            $query = "INSERT INTO user_images (user_id, image_path) VALUES (:user_id, :image_path)";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':user_id' => $userId,
+                ':image_path' => $imagePath
+            ]);
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+        }
+    }
+
+    public function getImages($userId) {
+        $query = "SELECT * FROM user_images WHERE user_id = :user_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteImage($imageId) {
+        $query = "DELETE FROM user_images WHERE id = :id";
+        $stmt = $this->db->prepare($query);
+        return $stmt->execute(['id' => $imageId]);
     }
 }
 ?>

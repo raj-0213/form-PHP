@@ -112,3 +112,28 @@ table th {
 table td {
     background-color: #fff;
 }
+
+
+.btn-show {
+    background-color: #28a745;
+}
+
+.btn-edit {
+    background-color: #ffc107;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+}
+
+.btn-show:hover {
+    background-color: #218838;
+}
+
+.btn-edit:hover {
+    background-color: #e0a800;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
