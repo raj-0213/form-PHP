@@ -170,7 +170,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 if ($result) {
-    $userId = $result; // Capture inserted user ID
+    $userId = $result;
 
     // Handle multiple image uploads
     if (!empty($_FILES['other_images']['name'][0])) {
@@ -185,7 +185,7 @@ if ($result) {
             $file_path = $upload_dir . $file_name;
 
             if (move_uploaded_file($file_tmp, $file_path)) {
-                $user->addImage($userId, $file_path); // Pass userId to addImage function
+                $user->addImage($userId, $file_path); 
             } else {
                 die("Error uploading file: $name");
             }

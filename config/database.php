@@ -18,12 +18,4 @@ class Database {
 }
 ?>
 
-<!-- CREATE TABLE user_images (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES userdetails(id),
-    image_path VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-); -->
-
 

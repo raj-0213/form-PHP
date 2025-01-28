@@ -1,4 +1,9 @@
 <?php
+
+// echo "Script started";
+// ob_flush();
+// flush();
+
 require_once __DIR__ . '/../classes/User.php';
 $user = new User();
 
@@ -8,6 +13,10 @@ if (isset($_GET['id'])) {
     if (!$userData) {
         die("User not found!");
     }
+
+    // Fetch user images
+    $userImages = $user->getImages($_GET['id']);
+    // var_dump($userImages);
 }
 
 // Handle form submission for updating user
@@ -35,7 +44,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     ];
 
+    // print_r($_FILES);
+
+    // Handle multiple image uploads
+    if (!empty($_FILES['new_images']['name'][0])) {
+        
+        // echo "Called";
+        // ob_flush();
+        // flush();
+
+        $upload_dir = 'uploads/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+
+        foreach ($_FILES['new_images']['name'] as $key => $name) {
+            $file_tmp = $_FILES['new_images']['tmp_name'][$key];
+            $file_name = basename($name);
+            $file_path = $upload_dir . $file_name;
+
+            if (move_uploaded_file($file_tmp, $file_path)) {
+
+                // echo $file_path;
+
+                $user->addImage($_POST['id'], $file_path); 
+
+            } else {
+                die("Error uploading file: $name");
+            }
+        }
+    }
+    
     $user->updateUser($updateData);
+
     header("Location: ../index.php");
 }
 
@@ -44,7 +85,7 @@ function test_editor_input($data) {
     $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote><div><span>';
     // Allow style attribute for alignment
     $data = strip_tags($data, $allowed_tags);
-    $data = preg_replace('/class="[^"]*"/', '', $data); // Remove existing classes
+    $data = preg_replace('/class="[^"]*"/', '', $data); 
     $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     return $data;
 }
@@ -67,35 +108,35 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
         }
        
         .toolbar {
-    background: #f1f1f1;
-    padding: 5px;
-    border: 1px solid #ccc;
-    display: inline-block;
-}
+            padding: 5px;
+            background: #f1f1f1;
+            display: inline-block;
+            border: 1px solid #ccc;
+        }
+            
+        .toolbar button {
+            margin: 2px;
+            padding: 5px;
+            cursor: pointer;
+        }
 
-.toolbar button {
-    padding: 5px;
-    margin: 2px;
-    cursor: pointer;
-}
-
-.text-editor {
-    width: 100%;
-    min-height: 150px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-top: 5px;
-    outline: none;
-    overflow-y: auto;
-}
-
+        .text-editor {
+            min-height: 150px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-top: 5px;
+            outline: none;
+            overflow-y: auto;
+        }
      </style> 
 </head>
 <body>
     
 <h2>Edit User</h2>
 <a href="../index.php" class="btn btn-home">Back to Home</a>
-<form action="" method="post">
+
+<form action="" method="post" enctype="multipart/form-data">
     <input type="hidden" name="id" value="<?= htmlspecialchars($userData['id']) ?>">
     Name: <input type="text" name="name" value="<?= htmlspecialchars($userData['name']) ?>" required> <br>
     Email: <input type="email" name="email" value="<?= htmlspecialchars($userData['email']) ?>" required> <br>
@@ -124,6 +165,29 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
     <input type="radio" name="gender" value="Male" <?= ($userData['gender'] == 'Male') ? 'checked' : '' ?>> Male
     <input type="radio" name="gender" value="Female" <?= ($userData['gender'] == 'Female') ? 'checked' : '' ?>> Female
     <input type="radio" name="gender" value="Other" <?= ($userData['gender'] == 'Other') ? 'checked' : '' ?>> Other <br>
+
+    <!-- Profile Picture -->
+    <h3>Profile Picture</h3>
+    <img src="http://localhost/Task/views/uploads/<?= htmlspecialchars($userData['profile_picture']) ?>" alt="Profile Picture" width="150"><br>
+
+    <!-- Multiple Images -->
+    <h3>Other Images</h3>
+    <div id="images-container">
+        <?php foreach ($userImages as $image): ?>
+            <div class="image-wrapper" data-id="<?= $image['id'] ?>" style="position: relative; display: inline-block;
+            <?= $image['isactive'] ? '' : 'opacity: 0.5; pointer-events: none;' ?>" >
+                <img src="http://localhost/Task/views/<?= htmlspecialchars($image['image_path']) ?>" alt="User Image" width="150">
+                <button type="button" class="delete-image"  onclick="deleteImage(<?php echo $image['id']; ?>)" style="position: absolute; top: 0; right: 0;">&times;</button>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Upload New Images -->
+    <h3>Upload New Images</h3>
+    <input type="file" name="new_images[]" id="new_images" multiple accept="image/*"><br>
+    <div id="new-images-preview"></div>
+
+
     Country:
     <select name="country" required>
         <option value="India" <?= ($userData['country'] == 'India') ? 'selected' : '' ?>>India</option>
@@ -158,6 +222,66 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
             document.querySelector("form").addEventListener("submit", function() {
             document.getElementById("editorContent").value = document.getElementById("editor-container").innerHTML;
         });
+
+        function deleteImage(imageId) {
+            if (confirm('Are you sure you want to delete this image?')) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'delete_image.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        
+                        // console.log(xhr);
+
+                        var response = JSON.parse(xhr.responseText);
+
+                        // console.log(response);
+
+                        if (response.success) {
+                            var imageWrapper = document.querySelector('.image-wrapper[data-id="' + imageId + '"]');
+                        if (imageWrapper) {
+                            imageWrapper.remove();
+                        } else {
+                            console.error('Image wrapper not found for image ID:', imageId);
+                        }
+                        } else {
+                            alert('Failed to delete image.');
+                        }
+                    }
+                };
+                xhr.send('id=' + imageId);
+            }
+        }
+
+
+    document.getElementById('new_images').addEventListener('change', function() {
+        const previewContainer = document.getElementById('new-images-preview');
+        previewContainer.innerHTML = '';
+        Array.from(this.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.position = 'relative';
+                imgWrapper.style.display = 'inline-block';
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.width = 150;
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '&times;';
+                deleteButton.style.position = 'absolute';
+                deleteButton.style.top = '0';
+                deleteButton.style.right = '0';
+                deleteButton.addEventListener('click', function() {
+                    imgWrapper.remove();
+                });
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(deleteButton);
+                previewContainer.appendChild(imgWrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
 </script>
 </body>
 </html>

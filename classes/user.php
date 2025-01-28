@@ -90,6 +90,8 @@ class User {
 
     public function addImage($userId, $imagePath) {
         try {
+            echo $userId;
+            echo $imagePath;
             $query = "INSERT INTO user_images (user_id, image_path) VALUES (:user_id, :image_path)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
@@ -107,6 +109,13 @@ class User {
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function softDeleteImage($imageId) {
+        $query = "UPDATE user_images SET isActive = false  WHERE id = :id";
+        $stmt = $this->db->prepare($query);
+        return $stmt->execute(['id' => $imageId]);
+    }
+    
 
     public function deleteImage($imageId) {
         $query = "DELETE FROM user_images WHERE id = :id";
