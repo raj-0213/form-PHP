@@ -90,8 +90,8 @@ class User {
 
     public function addImage($userId, $imagePath) {
         try {
-            echo $userId;
-            echo $imagePath;
+            // echo $userId;
+            // echo $imagePath;
             $query = "INSERT INTO user_images (user_id, image_path) VALUES (:user_id, :image_path)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
@@ -122,6 +122,31 @@ class User {
         $stmt = $this->db->prepare($query);
         return $stmt->execute(['id' => $imageId]);
     }
+
+    public function searchUsers($query) {
+        $query = htmlspecialchars($query);
+        $sql = "SELECT * FROM userdetails WHERE CAST(id AS TEXT) LIKE ? OR name LIKE ?";
+        $stmt = $this->db->prepare($sql);
+        $searchTerm = "%$query%";
+        $stmt->execute([$searchTerm, $searchTerm]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function createAdmin($name, $email, $password) {
+        $query = "INSERT INTO admindetails (name, email, password) VALUES (:name,:email, :password)";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([$name, $email, $password]);
+        return $this->db->lastInsertId();
+    }
+
+    public function getAdminByEmail($email) {
+        $query = "SELECT * FROM admindetails WHERE email = :email";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([':email' => $email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
 }
 ?>
+
 

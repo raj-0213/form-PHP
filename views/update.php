@@ -4,6 +4,13 @@
 // ob_flush();
 // flush();
 
+session_start(); 
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 require_once __DIR__ . '/../classes/User.php';
 $user = new User();
 
@@ -48,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Handle multiple image uploads
     if (!empty($_FILES['new_images']['name'][0])) {
-        
+
         // echo "Called";
         // ob_flush();
         // flush();
@@ -67,25 +74,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // echo $file_path;
 
-                $user->addImage($_POST['id'], $file_path); 
-
+                $user->addImage($_POST['id'], $file_path);
             } else {
                 die("Error uploading file: $name");
             }
         }
     }
-    
+
     $user->updateUser($updateData);
 
     header("Location: ../index.php");
 }
 
-function test_editor_input($data) {
-    // Allow basic formatting tags and alignment styles
+function test_editor_input($data)
+{
     $allowed_tags = '<b><i><u><strong><em><p><br><ul><ol><li><blockquote><div><span>';
-    // Allow style attribute for alignment
     $data = strip_tags($data, $allowed_tags);
-    $data = preg_replace('/class="[^"]*"/', '', $data); 
+    $data = preg_replace('/class="[^"]*"/', '', $data);
     $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     return $data;
 }
@@ -97,23 +102,171 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit User</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <!-- <link rel="stylesheet" href="../css/style.css"> -->
     <style>
+        body {
+            font-family: sans-serif;
+        }
+
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .btn-home {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: green;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(137, 255, 1, 0.1);
+        }
+
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Arial', sans-serif;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #28a745;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            width: auto;
+        }
+
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Arial', sans-serif;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        input[type="color"] {
+            color: white;
+            border: none;
+            height: 40px;
+            font-size: 16px;
+            width: 50%;
+            font-family: 'Arial', sans-serif;
+        }
+
+        h2 {
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+        }
+
+        label {
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table th {
+            background-color: #28a745;
+            color: white;
+        }
+
+        table td {
+            background-color: #fff;
+        }
+
+
+        .btn-show {
+            background-color: #28a745;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .btn-show:hover {
+            background-color: #218838;
+        }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
         .error {
             color: red;
         }
-       
+
         .toolbar {
             padding: 5px;
             background: #f1f1f1;
             display: inline-block;
             border: 1px solid #ccc;
         }
-            
+
         .toolbar button {
             margin: 2px;
             padding: 5px;
@@ -129,97 +282,98 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
             outline: none;
             overflow-y: auto;
         }
-     </style> 
+    </style>
 </head>
+
 <body>
-    
-<h2>Edit User</h2>
-<a href="../index.php" class="btn btn-home">Back to Home</a>
 
-<form action="" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="id" value="<?= htmlspecialchars($userData['id']) ?>">
-    Name: <input type="text" name="name" value="<?= htmlspecialchars($userData['name']) ?>" required> <br>
-    Email: <input type="email" name="email" value="<?= htmlspecialchars($userData['email']) ?>" required> <br>
-    Phone Number: <input type="text" name="phone_number" value="<?= htmlspecialchars($userData['phone_number']) ?>" required> <br>
-    Date of Birth: <input type="date" name="dob" value="<?= htmlspecialchars($userData['dob']) ?>" required> <br>
+    <h2>Edit User</h2>
+    <a href="../index.php" class="btn btn-home">Back to Home</a>
 
-    <label for="editor">Your Bio</label><br>
-    <div id="editor-container" class="text-editor" contenteditable="true">
-        <?= htmlspecialchars_decode($userData['editorcontent']) ?>
-    </div>
-    <input type="hidden" name="editorContent" id="editorContent">
+    <form action="" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($userData['id']) ?>">
+        Name: <input type="text" name="name" value="<?= htmlspecialchars($userData['name']) ?>" required> <br>
+        Email: <input type="email" name="email" value="<?= htmlspecialchars($userData['email']) ?>" required> <br>
+        Phone Number: <input type="text" name="phone_number" value="<?= htmlspecialchars($userData['phone_number']) ?>" required> <br>
+        Date of Birth: <input type="date" name="dob" value="<?= htmlspecialchars($userData['dob']) ?>" required> <br>
 
-    <div class="toolbar">
-        <button type="button" onclick="formatText('bold')"><b>B</b></button>
-        <button type="button" onclick="formatText('italic')"><i>I</i></button>
-        <button type="button" onclick="formatText('underline')"><u>U</u></button>
-        <button type="button" onclick="formatText('justifyLeft')">Left</button>
-        <button type="button" onclick="formatText('justifyCenter')">Center</button>
-        <button type="button" onclick="formatText('justifyRight')">Right</button>
-        <button type="button" onclick="formatText('insertUnorderedList')">UL</button>
-        <button type="button" onclick="formatText('insertOrderedList')">OL</button>
-    </div>
+        <label for="editor">Your Bio</label><br>
+        <div id="editor-container" class="text-editor" contenteditable="true">
+            <?= htmlspecialchars_decode($userData['editorcontent']) ?>
+        </div>
+        <input type="hidden" name="editorContent" id="editorContent">
 
-    Favorite Color: <input type="color" name="color_code" value="<?= htmlspecialchars($userData['color_code']) ?>" required> <br>
-    Gender: 
-    <input type="radio" name="gender" value="Male" <?= ($userData['gender'] == 'Male') ? 'checked' : '' ?>> Male
-    <input type="radio" name="gender" value="Female" <?= ($userData['gender'] == 'Female') ? 'checked' : '' ?>> Female
-    <input type="radio" name="gender" value="Other" <?= ($userData['gender'] == 'Other') ? 'checked' : '' ?>> Other <br>
+        <div class="toolbar">
+            <button type="button" onclick="formatText('bold')"><b>B</b></button>
+            <button type="button" onclick="formatText('italic')"><i>I</i></button>
+            <button type="button" onclick="formatText('underline')"><u>U</u></button>
+            <button type="button" onclick="formatText('justifyLeft')">Left</button>
+            <button type="button" onclick="formatText('justifyCenter')">Center</button>
+            <button type="button" onclick="formatText('justifyRight')">Right</button>
+            <button type="button" onclick="formatText('insertUnorderedList')">UL</button>
+            <button type="button" onclick="formatText('insertOrderedList')">OL</button>
+        </div>
 
-    <!-- Profile Picture -->
-    <h3>Profile Picture</h3>
-    <img src="http://localhost/Task/views/uploads/<?= htmlspecialchars($userData['profile_picture']) ?>" alt="Profile Picture" width="150"><br>
+        Favorite Color: <input type="color" name="color_code" value="<?= htmlspecialchars($userData['color_code']) ?>" required> <br>
+        Gender:
+        <input type="radio" name="gender" value="Male" <?= ($userData['gender'] == 'Male') ? 'checked' : '' ?>> Male
+        <input type="radio" name="gender" value="Female" <?= ($userData['gender'] == 'Female') ? 'checked' : '' ?>> Female
+        <input type="radio" name="gender" value="Other" <?= ($userData['gender'] == 'Other') ? 'checked' : '' ?>> Other <br>
 
-    <!-- Multiple Images -->
-    <h3>Other Images</h3>
-    <div id="images-container">
-        <?php foreach ($userImages as $image): ?>
-            <div class="image-wrapper" data-id="<?= $image['id'] ?>" style="position: relative; display: inline-block;
-            <?= $image['isactive'] ? '' : 'opacity: 0.5; pointer-events: none;' ?>" >
-                <img src="http://localhost/Task/views/<?= htmlspecialchars($image['image_path']) ?>" alt="User Image" width="150">
-                <button type="button" class="delete-image"  onclick="deleteImage(<?php echo $image['id']; ?>)" style="position: absolute; top: 0; right: 0;">&times;</button>
-            </div>
-        <?php endforeach; ?>
-    </div>
+        <!-- Profile Picture -->
+        <h3>Profile Picture</h3>
+        <img src="http://localhost/Task/views/uploads/<?= htmlspecialchars($userData['profile_picture']) ?>" alt="Profile Picture" width="150"><br>
 
-    <!-- Upload New Images -->
-    <h3>Upload New Images</h3>
-    <input type="file" name="new_images[]" id="new_images" multiple accept="image/*"><br>
-    <div id="new-images-preview"></div>
+        <!-- Multiple Images -->
+        <h3>Other Images</h3>
+        <div id="images-container">
+            <?php foreach ($userImages as $image): ?>
+                <div class="image-wrapper" data-id="<?= $image['id'] ?>" style="position: relative; display: inline-block;
+            <?= $image['isactive'] ? '' : 'opacity: 0.5; pointer-events: none;' ?>">
+                    <img src="http://localhost/Task/views/<?= htmlspecialchars($image['image_path']) ?>" alt="User Image" width="150">
+                    <button type="button" class="delete-image" onclick="deleteImage(<?php echo $image['id']; ?>)" style="position: absolute; top: 0; right: 0;">&times;</button>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
-
-    Country:
-    <select name="country" required>
-        <option value="India" <?= ($userData['country'] == 'India') ? 'selected' : '' ?>>India</option>
-        <option value="USA" <?= ($userData['country'] == 'USA') ? 'selected' : '' ?>>USA</option>
-        <option value="UK" <?= ($userData['country'] == 'UK') ? 'selected' : '' ?>>UK</option>
-    </select> <br>
-    Hobbies:<br>
-    <input type="checkbox" name="hobbies[]" value="Reading" <?= in_array("Reading", $selectedHobbies) ? 'checked' : '' ?>> Reading
-    <input type="checkbox" name="hobbies[]" value="Gaming" <?= in_array("Gaming", $selectedHobbies) ? 'checked' : '' ?>> Gaming
-    <input type="checkbox" name="hobbies[]" value="Traveling" <?= in_array("Traveling", $selectedHobbies) ? 'checked' : '' ?>> Traveling
-    <input type="checkbox" name="hobbies[]" value="Music" <?= in_array("Music", $selectedHobbies) ? 'checked' : '' ?>> Music
-    <input type="checkbox" name="hobbies[]" value="Sports" <?= in_array("Sports", $selectedHobbies) ? 'checked' : '' ?>> Sports <br>
-
-    Birth Month: <input type="month" name="bdaymonth" value="<?= htmlspecialchars($userData['bdaymonth']) ?>" required> <br>
-    Week: <input type="week" name="week" value="<?= htmlspecialchars($userData['week']) ?>" required> <br>
-
-    Quantity: <input type="range" name="quantity" value="<?= htmlspecialchars($userData['quantity']) ?>" required> <br>
-
-    Time: <input type="time" name="time" value="<?= htmlspecialchars($userData['time']) ?>" required> <br>
-    URL: <input type="url" name="url" value="<?= htmlspecialchars($userData['url']) ?>" required> <br>
-    <input type="checkbox" name="terms" <?= ($userData['terms'] == true) ? 'checked' : '' ?>> I accept the terms and conditions <br>
-
-    <input type="submit" value="Update">
-</form>
+        <!-- Upload New Images -->
+        <h3>Upload New Images</h3>
+        <input type="file" name="new_images[]" id="new_images" multiple accept="image/*"><br>
+        <div id="new-images-preview"></div>
 
 
-<script>
+        Country:
+        <select name="country" required>
+            <option value="India" <?= ($userData['country'] == 'India') ? 'selected' : '' ?>>India</option>
+            <option value="USA" <?= ($userData['country'] == 'USA') ? 'selected' : '' ?>>USA</option>
+            <option value="UK" <?= ($userData['country'] == 'UK') ? 'selected' : '' ?>>UK</option>
+        </select> <br>
+        Hobbies:<br>
+        <input type="checkbox" name="hobbies[]" value="Reading" <?= in_array("Reading", $selectedHobbies) ? 'checked' : '' ?>> Reading
+        <input type="checkbox" name="hobbies[]" value="Gaming" <?= in_array("Gaming", $selectedHobbies) ? 'checked' : '' ?>> Gaming
+        <input type="checkbox" name="hobbies[]" value="Traveling" <?= in_array("Traveling", $selectedHobbies) ? 'checked' : '' ?>> Traveling
+        <input type="checkbox" name="hobbies[]" value="Music" <?= in_array("Music", $selectedHobbies) ? 'checked' : '' ?>> Music
+        <input type="checkbox" name="hobbies[]" value="Sports" <?= in_array("Sports", $selectedHobbies) ? 'checked' : '' ?>> Sports <br>
+
+        Birth Month: <input type="month" name="bdaymonth" value="<?= htmlspecialchars($userData['bdaymonth']) ?>" required> <br>
+        Week: <input type="week" name="week" value="<?= htmlspecialchars($userData['week']) ?>" required> <br>
+
+        Quantity: <input type="range" name="quantity" value="<?= htmlspecialchars($userData['quantity']) ?>" required> <br>
+
+        Time: <input type="time" name="time" value="<?= htmlspecialchars($userData['time']) ?>" required> <br>
+        URL: <input type="url" name="url" value="<?= htmlspecialchars($userData['url']) ?>" required> <br>
+        <input type="checkbox" name="terms" <?= ($userData['terms'] == true) ? 'checked' : '' ?>> I accept the terms and conditions <br>
+
+        <input type="submit" value="Update">
+    </form>
+
+
+    <script>
         function formatText(command) {
             document.getElementById("editor-container").focus();
             document.execCommand(command, false, null);
         }
-            document.querySelector("form").addEventListener("submit", function() {
+        document.querySelector("form").addEventListener("submit", function() {
             document.getElementById("editorContent").value = document.getElementById("editor-container").innerHTML;
         });
 
@@ -228,9 +382,9 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', 'delete_image.php', true);
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function () {
+                xhr.onreadystatechange = function() {
                     if (xhr.readyState == 4 && xhr.status == 200) {
-                        
+
                         // console.log(xhr);
 
                         var response = JSON.parse(xhr.responseText);
@@ -239,11 +393,11 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
 
                         if (response.success) {
                             var imageWrapper = document.querySelector('.image-wrapper[data-id="' + imageId + '"]');
-                        if (imageWrapper) {
-                            imageWrapper.remove();
-                        } else {
-                            console.error('Image wrapper not found for image ID:', imageId);
-                        }
+                            if (imageWrapper) {
+                                imageWrapper.remove();
+                            } else {
+                                console.error('Image wrapper not found for image ID:', imageId);
+                            }
                         } else {
                             alert('Failed to delete image.');
                         }
@@ -254,34 +408,34 @@ $selectedHobbies = !empty($userData['hobbies']) ? explode(',', $userData['hobbie
         }
 
 
-    document.getElementById('new_images').addEventListener('change', function() {
-        const previewContainer = document.getElementById('new-images-preview');
-        previewContainer.innerHTML = '';
-        Array.from(this.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imgWrapper = document.createElement('div');
-                imgWrapper.style.position = 'relative';
-                imgWrapper.style.display = 'inline-block';
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.width = 150;
-                const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '&times;';
-                deleteButton.style.position = 'absolute';
-                deleteButton.style.top = '0';
-                deleteButton.style.right = '0';
-                deleteButton.addEventListener('click', function() {
-                    imgWrapper.remove();
-                });
-                imgWrapper.appendChild(img);
-                imgWrapper.appendChild(deleteButton);
-                previewContainer.appendChild(imgWrapper);
-            };
-            reader.readAsDataURL(file);
+        document.getElementById('new_images').addEventListener('change', function() {
+            const previewContainer = document.getElementById('new-images-preview');
+            previewContainer.innerHTML = '';
+            Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.style.position = 'relative';
+                    imgWrapper.style.display = 'inline-block';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.width = 150;
+                    const deleteButton = document.createElement('button');
+                    deleteButton.innerHTML = '&times;';
+                    deleteButton.style.position = 'absolute';
+                    deleteButton.style.top = '0';
+                    deleteButton.style.right = '0';
+                    deleteButton.addEventListener('click', function() {
+                        imgWrapper.remove();
+                    });
+                    imgWrapper.appendChild(img);
+                    imgWrapper.appendChild(deleteButton);
+                    previewContainer.appendChild(imgWrapper);
+                };
+                reader.readAsDataURL(file);
+            });
         });
-    });
-
-</script>
+    </script>
 </body>
+
 </html>

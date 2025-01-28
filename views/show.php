@@ -1,4 +1,12 @@
 <?php
+
+session_start(); 
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 require_once __DIR__ . '/../classes/User.php';
 $user = new User();
 
@@ -18,272 +26,279 @@ if (isset($_GET['id'])) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
     <style>
         body {
+            font-family: sans-serif;
+        }
+
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
             font-family: 'Arial', sans-serif;
-            margin: 20px;
         }
+
         .container {
-            max-width: 800px;
-            margin: auto;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        .user-details, .user-images, .upload-form {
+
+        .btn-home {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: green;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(137, 255, 1, 0.1);
+        }
+
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Arial', sans-serif;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #28a745;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            width: auto;
+        }
+
+        input[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Arial', sans-serif;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        input[type="color"] {
+            color: white;
+            border: none;
+            height: 40px;
+            font-size: 16px;
+            width: 50%;
+            font-family: 'Arial', sans-serif;
+        }
+
+        h2 {
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+        }
+
+        label {
+            font-weight: bold;
+            font-family: 'Arial', sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        table th {
+            background-color: #28a745;
+            color: white;
+        }
+
+        table td {
+            background-color: #fff;
+        }
+
+
+        .btn-show {
+            background-color: #28a745;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .btn-show:hover {
+            background-color: #218838;
+        }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        .user-details,
+        .user-images,
+        .upload-form {
             margin-bottom: 20px;
         }
+
         .user-details table {
             width: 100%;
             border-collapse: collapse;
         }
-        .user-details th, .user-details td {
+
+        .user-details th,
+        .user-details td {
             border: 1px solid #ddd;
             padding: 8px;
         }
+
         .user-details th {
             background-color: green;
         }
     </style>
-    <script>
-        function deleteImage(imageId) {
-            if (confirm('Are you sure you want to delete this image?')) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'delete_image.php', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            document.getElementById('image-' + imageId).remove();
-                        } else {
-                            alert('Failed to delete image.');
-                        }
-                    }
-                };
-                xhr.send('id=' + imageId);
-            }
-        }
-    </script>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>User Details</h2>
-    <a href="../index.php" class="btn btn-home">Back to Home</a>
-    <div class="user-details">
-        <table>
-            <tr>
-                <th>ID</th>
-                <td><?= htmlspecialchars($userData['id']) ?></td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <td><?= htmlspecialchars($userData['name']) ?></td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td><?= htmlspecialchars($userData['email']) ?></td>
-            </tr>
-            <tr>
-                <th>Phone</th>
-                <td><?= htmlspecialchars($userData['phone_number']) ?></td>
-            </tr>
-            <tr>
-                <th>DOB</th>
-                <td><?= htmlspecialchars($userData['dob']) ?></td>
-            </tr>
-            <tr>
-                <th>Hobbies</th>
-                <td><?= htmlspecialchars($userData['hobbies']) ?></td>
-            </tr>
-            <tr>
-                <th>Color</th>
-                <td>
-                    <div style="width: 30px; height: 30px; background-color: <?= htmlspecialchars($userData['color_code']) ?>; border: 1px solid #000;"></div>
-                </td>
-            </tr>
-            <tr>
-                <th>Gender</th>
-                <td><?= htmlspecialchars($userData['gender']) ?></td>
-            </tr>
-            <tr>
-                <th>Profile Picture</th>
-                <td><img src="http://localhost/Task/views/uploads/<?= htmlspecialchars($userData['profile_picture']) ?>" width="50" height="50" alt="Profile Picture"></td>
-            </tr>
-            <tr>
-                <th>Country</th>
-                <td><?= htmlspecialchars($userData['country']) ?></td>
-            </tr>
-            <tr>
-                <th>Month</th>
-                <td><?= htmlspecialchars($userData['bdaymonth']) ?></td>
-            </tr>
-            <tr>
-                <th>Week</th>
-                <td><?= htmlspecialchars($userData['week']) ?></td>
-            </tr>
-            <tr>
-                <th>Quantity</th>
-                <td><?= htmlspecialchars($userData['quantity']) ?></td>
-            </tr>
-            <tr>
-                <th>Time</th>
-                <td><?= htmlspecialchars($userData['time']) ?></td>
-            </tr>
-            <tr>
-                <th>URL</th>
-                <td><?= htmlspecialchars($userData['url']) ?></td>
-            </tr>
-            <tr>
-                <th>Editor Content</th>
-                <td>
-                <div class="editor-content" style="border: 1px solid #ddd; padding: 10px;">
-                    <?= htmlspecialchars_decode($userData['editorcontent']) ?> 
-                </div>
-                </td>
-            </tr>
-            <tr>
-                <th>User Images</th>
-                <td>
-                <div class="user-images">
-                    <?php foreach ($userImages as $image): ?>
-                    <div class="image-container" id="image-<?php echo $image['id']; ?>">
-                    <img src="http://localhost/Task/views/<?php echo $image['image_path']; ?>" width="200" height="200" alt="User Image">
-                </div>
-                <?php endforeach; ?>
-                </div>
-                </td>
-            </tr>
-        </table>
+    <div class="container">
+        <h2>User Details</h2>
+        <a href="../index.php" class="btn btn-home">Back to Home</a>
+        <div class="user-details">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <td><?= htmlspecialchars($userData['id']) ?></td>
+                </tr>
+                <tr>
+                    <th>Name</th>
+                    <td><?= htmlspecialchars($userData['name']) ?></td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td><?= htmlspecialchars($userData['email']) ?></td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td><?= htmlspecialchars($userData['phone_number']) ?></td>
+                </tr>
+                <tr>
+                    <th>DOB</th>
+                    <td><?= htmlspecialchars($userData['dob']) ?></td>
+                </tr>
+                <tr>
+                    <th>Hobbies</th>
+                    <td><?= htmlspecialchars($userData['hobbies']) ?></td>
+                </tr>
+                <tr>
+                    <th>Color</th>
+                    <td>
+                        <div style="width: 30px; height: 30px; background-color: <?= htmlspecialchars($userData['color_code']) ?>; border: 1px solid #000;"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Gender</th>
+                    <td><?= htmlspecialchars($userData['gender']) ?></td>
+                </tr>
+                <tr>
+                    <th>Profile Picture</th>
+                    <td><img src="http://localhost/Task/views/uploads/<?= htmlspecialchars($userData['profile_picture']) ?>" width="50" height="50" alt="Profile Picture"></td>
+                </tr>
+                <tr>
+                    <th>Country</th>
+                    <td><?= htmlspecialchars($userData['country']) ?></td>
+                </tr>
+                <tr>
+                    <th>Month</th>
+                    <td><?= htmlspecialchars($userData['bdaymonth']) ?></td>
+                </tr>
+                <tr>
+                    <th>Week</th>
+                    <td><?= htmlspecialchars($userData['week']) ?></td>
+                </tr>
+                <tr>
+                    <th>Quantity</th>
+                    <td><?= htmlspecialchars($userData['quantity']) ?></td>
+                </tr>
+                <tr>
+                    <th>Time</th>
+                    <td><?= htmlspecialchars($userData['time']) ?></td>
+                </tr>
+                <tr>
+                    <th>URL</th>
+                    <td><?= htmlspecialchars($userData['url']) ?></td>
+                </tr>
+                <tr>
+                    <th>Editor Content</th>
+                    <td>
+                        <div class="editor-content" style="border: 1px solid #ddd; padding: 10px;">
+                            <?= htmlspecialchars_decode($userData['editorcontent']) ?>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>User Images</th>
+                    <td>
+                        <div class="user-images">
+                            <?php foreach ($userImages as $image): ?>
+                                <div class="image-container" id="image-<?php echo $image['id']; ?>">
+                                    <img src="http://localhost/Task/views/<?php echo $image['image_path']; ?>" width="200" height="200" alt="User Image">
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+
+
     </div>
 
-    
-
-</div>
-
 </body>
+
 </html>
 
-<!-- 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .image-container {
-            position: relative;
-            display: inline-block;
-            margin: 10px;
-        }
-        .image-container img {
-            max-width: 200px;
-            max-height: 200px;
-        }
-        .delete-badge {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: red;
-            color: white;
-            border-radius: 50%;
-            padding: 5px;
-            cursor: pointer;
-        }
-    </style>
-    <script>
-        function deleteImage(imageId) {
-            if (confirm('Are you sure you want to delete this image?')) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'delete_image.php', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        var response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            document.getElementById('image-' + imageId).remove();
-                        } else {
-                            alert('Failed to delete image.');
-                        }
-                    }
-                };
-                xhr.send('id=' + imageId);
-            }
-        }
-    </script>
-</head>
-<body>
-
-<h2>User Details</h2>
-<a href="../index.php" class="btn btn-home">Back to Home</a>
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>DOB</th>
-        <th>Hobbies</th>
-        <th>Color</th>
-        <th>Gender</th>
-        <th>Profile Picture</th>
-        <th>Country</th>
-        <th>Month</th>
-        <th>Week</th>
-        <th>Quantity</th>
-        <th>Time</th>
-        <th>URL</th>
-        <th>Editor Content</th>
-        <th>Status</th>
-    </tr>
-
-    <?php if (isset($userData) && is_array($userData)): ?>
-    <tr>
-        <td><?= htmlspecialchars($userData['id']) ?></td>
-        <td><?= htmlspecialchars($userData['name']) ?></td>
-        <td><?= htmlspecialchars($userData['email']) ?></td>
-        <td><?= htmlspecialchars($userData['phone_number']) ?></td>
-        <td><?= htmlspecialchars($userData['dob']) ?></td>
-        <td><?= htmlspecialchars($userData['hobbies']) ?></td>
-        <td>
-            <div style="width: 30px; height: 30px; background-color: <?= htmlspecialchars($userData['color_code']) ?>; border: 1px solid #000;"></div>
-        </td>
-        <td><?= htmlspecialchars($userData['gender']) ?></td>
-        <td><img src="http://localhost/form-PHP-main/views/uploads/<?= htmlspecialchars($userData['profile_picture']) ?>" width="50" height="50" alt="Profile Picture"></td>
-        <td><?= htmlspecialchars($userData['country']) ?></td>
-        <td><?= htmlspecialchars($userData['bdaymonth']) ?></td>
-        <td><?= htmlspecialchars($userData['week']) ?></td>
-        <td><?= htmlspecialchars($userData['quantity']) ?></td>
-        <td><?= htmlspecialchars($userData['time']) ?></td>
-        <td><a href="<?= htmlspecialchars($userData['url']) ?>" target="_blank"><?= htmlspecialchars($userData['url']) ?></a></td>
-        <td>
-            <div class="editor-content" style="border: 1px solid #ddd; padding: 10px;">
-                <?= htmlspecialchars_decode($userData['editorcontent']) ?> 
-            </div>
-        </td>
-
-        <td style="background-color: <?= $userData['isactive'] ? 'green' : 'red' ?>; color: white;">
-            <?= $userData['isactive'] ? 'Active' : 'InActive' ?>
-        </td>
-        
-    </tr>
-    <?php else: ?>
-    <tr><td colspan="16">No user data available</td></tr>
-    <?php endif; ?>
-</table>
-
-<h3>User Images</h3>
-<div>
-    <?php foreach ($userImages as $image): ?>
-        <div class="image-container" id="image-<?php echo $image['id']; ?>">
-            <img src="http://localhost/form-PHP-main/views/<?php echo $image['image_path']; ?>" alt="User Image">
-            <span class="delete-badge" onclick="deleteImage(<?php echo $image['id']; ?>)">X</span>
-        </div>
-    <?php endforeach; ?>
-</div>
-
-</body>
-</html> -->
